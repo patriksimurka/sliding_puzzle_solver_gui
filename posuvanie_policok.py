@@ -5,11 +5,13 @@ a = 100
 pad = 50
 canvas = tkinter.Canvas(width=width, height=height)
 canvas.pack()
-cisla = [['7', '1', '', '4'],
-		 ['13', '9', '3', '2'],
-		 ['14', '11', '12', '6'],
-		 ['10', '15', '8', '5']]
+cisla = [[7, 1, '', 4],
+		 [13, 9, 3, 2],
+		 [14, 11, 12, 6],
+		 [10, 15, 8, 5]]
 zlte = ['1', '3', '6', '8', '9', '11', '14', '']
+
+prd = [[1,2,3,4],[5,6,7,8],[9,10,11,12],[13,14,15,'']]
 current = [0, 2]
 tahy = 0
 
@@ -23,6 +25,18 @@ def kresli():
 			else:
 				canvas.create_rectangle(pad+a*j, pad+i*a+a, pad+a*j+a, pad+i*a, fill='grey', tags='vsetko')
 			canvas.create_text((pad+a*j+pad+a*j+a)//2, (pad+i*a+a+pad+i*a)//2, text=cisla[i][j], font='Arial 15', tags='vsetko')
+
+def is_solved(board):
+	flat = [i for sub in board for i in sub if isinstance(i, int)]
+	print(flat)
+	for i in range(len(flat)-1):
+		if int(flat[i]) > int(flat[i+1]):
+			return False
+	return True
+
+print(is_solved(cisla))
+
+
 
 def dole(e):
 	global current, tahy
