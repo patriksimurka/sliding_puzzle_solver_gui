@@ -17,7 +17,7 @@ def kresli():
 	canvas.delete('vsetko')
 	for i in range(len(cisla)):
 		for j in range(len(cisla[0])):
-			if [i, j] == current:
+			if cisla[i][j] in zlte:
 				canvas.create_rectangle(pad+a*j, pad+i*a+a, pad+a*j+a, pad+i*a, fill='orange', tags='vsetko')
 			else:
 				canvas.create_rectangle(pad+a*j, pad+i*a+a, pad+a*j+a, pad+i*a, fill='grey', tags='vsetko')
