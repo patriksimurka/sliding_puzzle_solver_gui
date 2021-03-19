@@ -9,12 +9,13 @@ cisla = [['7', '1', '', '4'],
 		 ['13', '9', '3', '2'],
 		 ['14', '11', '12', '6'],
 		 ['10', '15', '8', '5']]
-current = [0, 2]
-
 zlte = ['1', '3', '6', '8', '9', '11', '14', '']
+current = [0, 2]
+tahy = 0
 
 def kresli():
 	canvas.delete('vsetko')
+	canvas.create_text(a+13, pad//2, text="Počet ťahov: " + str(tahy), font='Arial 15', tags='vsetko')
 	for i in range(len(cisla)):
 		for j in range(len(cisla[0])):
 			if cisla[i][j] in zlte:
@@ -24,31 +25,35 @@ def kresli():
 			canvas.create_text((pad+a*j+pad+a*j+a)//2, (pad+i*a+a+pad+i*a)//2, text=cisla[i][j], font='Arial 15', tags='vsetko')
 
 def dole(e):
-	global current
+	global current, tahy
 	if current[0] < len(cisla) - 1:
 		cisla[current[0]][current[1]], cisla[current[0]+1][current[1]] = cisla[current[0]+1][current[1]], cisla[current[0]][current[1]]
 		current = [current[0]+1, current[1]]
+		tahy += 1
 		kresli()
 
 def hore(e):
-	global current
+	global current, tahy
 	if current[0] > 0:
 		cisla[current[0]][current[1]], cisla[current[0]-1][current[1]] = cisla[current[0]-1][current[1]], cisla[current[0]][current[1]]
 		current = [current[0]-1, current[1]]
+		tahy += 1
 		kresli()
 
 def doprava(e):
-	global current
+	global current, tahy
 	if current[1] < len(cisla[0]) - 1:
 		cisla[current[0]][current[1]], cisla[current[0]][current[1]+1] = cisla[current[0]][current[1]+1], cisla[current[0]][current[1]]
 		current = [current[0], current[1]+1]
+		tahy += 1
 		kresli()
 
 def dolava(e):
-	global current
+	global current, tahy
 	if current[1] > 0:
 		cisla[current[0]][current[1]], cisla[current[0]][current[1]-1] = cisla[current[0]][current[1]-1], cisla[current[0]][current[1]]
 		current = [current[0], current[1]-1]
+		tahy += 1
 		kresli()
 
 kresli()
