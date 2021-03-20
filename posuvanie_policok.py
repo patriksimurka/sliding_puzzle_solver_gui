@@ -1,21 +1,28 @@
 import tkinter
-
+import time
+import random
+start = time.time()
 width = height = 500
 a = 100
 pad = 50
 canvas = tkinter.Canvas(width=width, height=height)
 canvas.pack()
-cisla = [[7, 1, '', 4],
+prd = [[7, 1, '', 4],
 		 [13, 9, 3, 2],
 		 [14, 11, 12, 6],
 		 [10, 15, 8, 5]]
 zlte = [1, 3, 6, 8, 9, 11, 14, '']
 
-prd = [[1,2,3,''],
+jeff = [[1,2,3,''],
 	     [5,6,7,4],
 	     [8,9,10,11],
 	     [12,13,14,15]]
-current = [0, 3]
+
+cisla = [[1,2,3],
+		[4,5,6],
+		[7,8,'']]
+
+current = [0, 2]
 tahy = 0
 solutions = []
 
@@ -31,13 +38,16 @@ def kresli():
 			canvas.create_text((pad+a*j+pad+a*j+a)//2, (pad+i*a+a+pad+i*a)//2, text=cisla[i][j], font='Arial 15', tags='vsetko')
 
 def is_solved(board):
-	flat = [i for sub in board for i in sub if isinstance(i, int)]
-	for i in range(len(flat)-1):
-		if int(flat[i]) > int(flat[i+1]):
+	flat = [i for sub in board for i in sub]
+	for i in range(0, len(flat)-1):
+		if str(flat[i]) != str(i+1):
 			return False
 	return True
 
-def get_solutions(current, board, path):
+def get_solutions(current, board, path, depth):
+	if len(path) > depth:
+		return False
+
 	if len(path) > 1:
 		if path[-1] == 'r' and path[-2] == 'l':
 			return False
@@ -47,10 +57,7 @@ def get_solutions(current, board, path):
 			return False
 		if path[-1] == 'd' and path[-2] == 'h':
 			return False
-
 	#print(path)
-	if len(path) > 50:
-		return False
 
 	if is_solved(board):
 		solutions.append(path)
@@ -58,39 +65,43 @@ def get_solutions(current, board, path):
 
 	if current[0] < len(cisla) - 1:
 		board[current[0]][current[1]], board[current[0]+1][current[1]] = board[current[0]+1][current[1]], board[current[0]][current[1]]
-		solved = get_solutions([current[0]+1, current[1]], board, path + ['d'])
+		solved = get_solutions([current[0]+1, current[1]], board, path + ['d'], depth)
 		if solved:
 			print(path + ['d'])
 		board[current[0]][current[1]], board[current[0]+1][current[1]] = board[current[0]+1][current[1]], board[current[0]][current[1]]
 
 	if current[1] > 0:
 		board[current[0]][current[1]], board[current[0]][current[1]-1] = board[current[0]][current[1]-1], board[current[0]][current[1]]
-		solved = get_solutions([current[0], current[1]-1], board, path + ['l'])
+		solved = get_solutions([current[0], current[1]-1], board, path + ['l'], depth)
 		if solved:
 			print(path + ['l'])
 		board[current[0]][current[1]], board[current[0]][current[1]-1] = board[current[0]][current[1]-1], board[current[0]][current[1]]
 
 	if current[0] > 0:
 		board[current[0]][current[1]], board[current[0]-1][current[1]] = board[current[0]-1][current[1]], board[current[0]][current[1]]
-		solved = get_solutions([current[0]-1, current[1]], board, path + ['h'])
+		solved = get_solutions([current[0]-1, current[1]], board, path + ['h'], depth)
 		if solved:
 			print(path + ['h'])
 		board[current[0]][current[1]], board[current[0]-1][current[1]] = board[current[0]-1][current[1]], board[current[0]][current[1]]
 
 	if current[1] < len(cisla[0]) - 1:
 		board[current[0]][current[1]], board[current[0]][current[1]+1] = board[current[0]][current[1]+1], board[current[0]][current[1]]
-		solved = get_solutions([current[0], current[1]+1], board, path + ['r'])
+		solved = get_solutions([current[0], current[1]+1], board, path + ['r'], depth)
 		if solved:
 			print(path + ['r'])
 		board[current[0]][current[1]], board[current[0]][current[1]+1] = board[current[0]][current[1]+1], board[current[0]][current[1]]
 
 	
-		
-print(get_solutions([0, 3], cisla, []))
-print(solutions)
+# for depth in range(1, 30):	
+# 	print(get_solutions([0, 2], cisla, [], depth))
 
 
-def dole(e):
+# print(solutions)
+# print(len(solutions))
+# print(time.time() - start)
+
+
+def dole(e='<KeyRelease-Down>'):
 	global current, tahy
 	if current[0] < len(cisla) - 1:
 		cisla[current[0]][current[1]], cisla[current[0]+1][current[1]] = cisla[current[0]+1][current[1]], cisla[current[0]][current[1]]
@@ -98,7 +109,7 @@ def dole(e):
 		tahy += 1
 		kresli()
 
-def hore(e):
+def hore(e='<KeyRelease-Up>'):
 	global current, tahy
 	if current[0] > 0:
 		cisla[current[0]][current[1]], cisla[current[0]-1][current[1]] = cisla[current[0]-1][current[1]], cisla[current[0]][current[1]]
@@ -106,7 +117,7 @@ def hore(e):
 		tahy += 1
 		kresli()
 
-def doprava(e):
+def doprava(e='<KeyRelease-Right>'):
 	global current, tahy
 	if current[1] < len(cisla[0]) - 1:
 		cisla[current[0]][current[1]], cisla[current[0]][current[1]+1] = cisla[current[0]][current[1]+1], cisla[current[0]][current[1]]
@@ -114,7 +125,7 @@ def doprava(e):
 		tahy += 1
 		kresli()
 
-def dolava(e):
+def dolava(e='<KeyRelease-Left>'):
 	global current, tahy
 	if current[1] > 0:
 		cisla[current[0]][current[1]], cisla[current[0]][current[1]-1] = cisla[current[0]][current[1]-1], cisla[current[0]][current[1]]
@@ -122,6 +133,9 @@ def dolava(e):
 		tahy += 1
 		kresli()
 
+pos = [dole, hore, doprava, dolava]
+for i in range(10):
+	random.choice(pos)()
 kresli()
 canvas.bind_all('<KeyRelease-Down>', dole)
 canvas.bind_all('<KeyRelease-Up>', hore)
