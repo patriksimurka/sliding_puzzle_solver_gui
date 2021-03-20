@@ -5,15 +5,19 @@ a = 100
 pad = 50
 canvas = tkinter.Canvas(width=width, height=height)
 canvas.pack()
-cisla = [[7, 1, '', 4],
+prd = [[7, 1, '', 4],
 		 [13, 9, 3, 2],
 		 [14, 11, 12, 6],
 		 [10, 15, 8, 5]]
 zlte = ['1', '3', '6', '8', '9', '11', '14', '']
 
-prd = [[1,2,3,4],[5,6,7,8],[9,10,11,12],[13,14,15,'']]
-current = [0, 2]
+cisla = [[1,2,3,''],
+	     [5,6,7,4],
+	     [8,9,10,11],
+	     [12,13,14,15]]
+current = [0, 3]
 tahy = 0
+solutions = []
 
 def kresli():
 	canvas.delete('vsetko')
@@ -28,14 +32,52 @@ def kresli():
 
 def is_solved(board):
 	flat = [i for sub in board for i in sub if isinstance(i, int)]
-	print(flat)
 	for i in range(len(flat)-1):
 		if int(flat[i]) > int(flat[i+1]):
 			return False
 	return True
 
-print(is_solved(cisla))
+def get_solutions(current, board, path):
+	print(path)
+	if len(path) > 8:
+		return False
 
+	if is_solved(board):
+		solutions.append(path)
+		return True
+
+	if current[0] < len(cisla) - 1:
+		board[current[0]][current[1]], board[current[0]+1][current[1]] = board[current[0]+1][current[1]], board[current[0]][current[1]]
+		solved = get_solutions([current[0]+1, current[1]], board, path + ['d'])
+		if solved:
+			print(path)
+		board[current[0]][current[1]], board[current[0]+1][current[1]] = board[current[0]+1][current[1]], board[current[0]][current[1]]
+
+	if current[1] > 0:
+		board[current[0]][current[1]], board[current[0]][current[1]-1] = board[current[0]][current[1]-1], board[current[0]][current[1]]
+		solved = get_solutions([current[0], current[1]-1], board, path + ['l'])
+		if solved:
+			print(path)
+		board[current[0]][current[1]], board[current[0]][current[1]-1] = board[current[0]][current[1]-1], board[current[0]][current[1]]
+
+	if current[0] > 0:
+		board[current[0]][current[1]], board[current[0]-1][current[1]] = board[current[0]-1][current[1]], board[current[0]][current[1]]
+		solved = get_solutions([current[0]-1, current[1]], board, path + ['h'])
+		if solved:
+			print(path)
+		board[current[0]][current[1]], board[current[0]-1][current[1]] = board[current[0]-1][current[1]], board[current[0]][current[1]]
+
+	if current[1] < len(cisla[0]) - 1:
+		board[current[0]][current[1]], board[current[0]][current[1]+1] = board[current[0]][current[1]+1], board[current[0]][current[1]]
+		solved = get_solutions([current[0], current[1]+1], board, path + ['r'])
+		if solved:
+			print(path)
+		board[current[0]][current[1]], board[current[0]][current[1]+1] = board[current[0]][current[1]+1], board[current[0]][current[1]]
+
+	
+		
+print(get_solutions([0, 3], cisla, []))
+print(solutions)
 
 
 def dole(e):
