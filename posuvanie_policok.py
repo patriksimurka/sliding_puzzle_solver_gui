@@ -91,9 +91,6 @@ def get_solutions(current, board, path, depth):
 			print(path + ['r'])
 		board[current[0]][current[1]], board[current[0]][current[1]+1] = board[current[0]][current[1]+1], board[current[0]][current[1]]
 
-	
-
-
 
 # print(solutions)
 # print(len(solutions))
@@ -135,7 +132,6 @@ def dolava(e='<KeyRelease-Left>'):
 # pos = [dole, hore, doprava, dolava]
 # for i in range(15):
 # 	random.choice(pos)()
-
 
 kresli()
 
