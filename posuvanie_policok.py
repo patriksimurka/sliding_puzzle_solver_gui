@@ -15,9 +15,9 @@ cisla = [[7, 1, 0, 4],
 zlte = [1, 3, 6, 8, 9, 11, 14, 0]
 
 prd = [[1,2,3,4],
-	     [5,6,7,8],
-	     [9,10,11,12],
-	     [13,14,15,0]]
+		 [5,6,7,8],
+		 [9,10,11,12],
+		 [13,14,15,0]]
 
 jeff = [[1,2,3],
 		[4,5,6],
@@ -50,25 +50,25 @@ class Puzzle:
 
 		self.current = self.get_current()
 
-	def dole(self, e='<KeyRelease-Down>'):
+	def down(self, e='<KeyRelease-Down>'):
 		if self.current[0] < len(cisla) - 1:
 			self.board[self.current[0]][self.current[1]], self.board[self.current[0]+1][self.current[1]] = self.board[self.current[0]+1][self.current[1]], self.board[self.current[0]][self.current[1]]
 			self.tahy += 1
 			self.kresli()
 
-	def hore(self, e='<KeyRelease-Up>'):
+	def up(self, e='<KeyRelease-Up>'):
 		if self.current[0] > 0:
 			self.board[self.current[0]][self.current[1]], self.board[self.current[0]-1][self.current[1]] = self.board[self.current[0]-1][self.current[1]], self.board[self.current[0]][self.current[1]]
 			self.tahy += 1
 			self.kresli()
 
-	def doprava(self, e='<KeyRelease-Right>'):
+	def right(self, e='<KeyRelease-Right>'):
 		if self.current[1] < len(cisla[0]) - 1:
 			self.board[self.current[0]][self.current[1]], self.board[self.current[0]][self.current[1]+1] = self.board[self.current[0]][self.current[1]+1], self.board[self.current[0]][self.current[1]]
 			self.tahy += 1
 			self.kresli()
 
-	def dolava(self, e='<KeyRelease-Left>'):
+	def left(self, e='<KeyRelease-Left>'):
 		if self.current[1] > 0:
 			self.board[self.current[0]][self.current[1]], self.board[self.current[0]][self.current[1]-1] = self.board[self.current[0]][self.current[1]-1], self.board[self.current[0]][self.current[1]]
 			self.tahy += 1
@@ -88,63 +88,35 @@ class Puzzle:
 					current = [i, j]
 					return current
 
+	def actions(self):
+		def create_move(at, to):
+			return lambda: self.move(at, to)
 
-def get_solutions(current, board, path, depth):
-	if len(path) > depth:
-		return False
+		moves = []
+		for i in range(self.width):
+			for j in range(self.width):
+				dirs = {'R':(i, j-1),
+					  'L':(i, j+1),
+					  'D':(i-1, j),
+					  'U':(i+1, j)}
 
-	if len(path) > 1:
-		if path[-1] == 'r' and path[-2] == 'l':
-			return False
-		if path[-1] == 'l' and path[-2] == 'r':
-			return False
-		if path[-1] == 'h' and path[-2] == 'd':
-			return False
-		if path[-1] == 'd' and path[-2] == 'h':
-			return False
+				for action, (r, c) in dirs.items():
+					if r >= 0 and c >= 0 and r < self.width and c < self.width and self.board[r][c] == 0:
+						move = create_move((i,j), (r,c)), action
+						moves.append(move)
+		return moves
 
-	if is_solved(board):
-		solutions.append(path)
-		return True
-
-	if current[0] < len(cisla) - 1:
-		board[current[0]][current[1]], board[current[0]+1][current[1]] = board[current[0]+1][current[1]], board[current[0]][current[1]]
-		solved = get_solutions([current[0]+1, current[1]], board, path + ['d'], depth)
-		if solved:
-			print(path + ['d'])
-		board[current[0]][current[1]], board[current[0]+1][current[1]] = board[current[0]+1][current[1]], board[current[0]][current[1]]
-
-	if current[1] > 0:
-		board[current[0]][current[1]], board[current[0]][current[1]-1] = board[current[0]][current[1]-1], board[current[0]][current[1]]
-		solved = get_solutions([current[0], current[1]-1], board, path + ['l'], depth)
-		if solved:
-			print(path + ['l'])
-		board[current[0]][current[1]], board[current[0]][current[1]-1] = board[current[0]][current[1]-1], board[current[0]][current[1]]
-
-	if current[0] > 0:
-		board[current[0]][current[1]], board[current[0]-1][current[1]] = board[current[0]-1][current[1]], board[current[0]][current[1]]
-		solved = get_solutions([current[0]-1, current[1]], board, path + ['h'], depth)
-		if solved:
-			print(path + ['h'])
-		board[current[0]][current[1]], board[current[0]-1][current[1]] = board[current[0]-1][current[1]], board[current[0]][current[1]]
-
-	if current[1] < len(cisla[0]) - 1:
-		board[current[0]][current[1]], board[current[0]][current[1]+1] = board[current[0]][current[1]+1], board[current[0]][current[1]]
-		solved = get_solutions([current[0], current[1]+1], board, path + ['r'], depth)
-		if solved:
-			print(path + ['r'])
-		board[current[0]][current[1]], board[current[0]][current[1]+1] = board[current[0]][current[1]+1], board[current[0]][current[1]]
-
-
-
+				   
 
 doska = Puzzle([[7, 1, 0, 4],
 		 [13, 9, 3, 2],
 		 [14, 11, 12, 6],
 		 [10, 15, 8, 5]], canvas)
 
-canvas.bind_all('<KeyRelease-Down>', doska.dole)
-canvas.bind_all('<KeyRelease-Up>', doska.hore)
-canvas.bind_all('<KeyRelease-Right>', doska.doprava)
-canvas.bind_all('<KeyRelease-Left>', doska.dolava)
+print(doska.actions())
+
+canvas.bind_all('<KeyRelease-Down>', doska.down)
+canvas.bind_all('<KeyRelease-Up>', doska.up)
+canvas.bind_all('<KeyRelease-Right>', doska.right)
+canvas.bind_all('<KeyRelease-Left>', doska.left)
 doska.canvas.mainloop()
