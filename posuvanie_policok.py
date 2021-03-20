@@ -7,42 +7,87 @@ a = 100
 pad = 50
 canvas = tkinter.Canvas(width=width, height=height)
 canvas.pack()
-cisla = [[7, 1, '', 4],
+
+cisla = [[7, 1, 0, 4],
 		 [13, 9, 3, 2],
 		 [14, 11, 12, 6],
 		 [10, 15, 8, 5]]
-zlte = [1, 3, 6, 8, 9, 11, 14, '']
+zlte = [1, 3, 6, 8, 9, 11, 14, 0]
 
 prd = [[1,2,3,4],
 	     [5,6,7,8],
 	     [9,10,11,12],
-	     [13,14,15,'']]
+	     [13,14,15,0]]
 
 jeff = [[1,2,3],
 		[4,5,6],
-		[7,8,'']]
+		[7,8,0]]
 
-current = [0, 2]
-tahy = 0
 solutions = []
 
-def kresli():
-	canvas.delete('vsetko')
-	canvas.create_text(a+13, pad//2, text="Počet ťahov: " + str(tahy), font='Arial 15', tags='vsetko')
-	for i in range(len(cisla)):
-		for j in range(len(cisla[0])):
-			if cisla[i][j] in zlte:
-				canvas.create_rectangle(pad+a*j, pad+i*a+a, pad+a*j+a, pad+i*a, fill='orange', tags='vsetko')
-			else:
-				canvas.create_rectangle(pad+a*j, pad+i*a+a, pad+a*j+a, pad+i*a, fill='grey', tags='vsetko')
-			canvas.create_text((pad+a*j+pad+a*j+a)//2, (pad+i*a+a+pad+i*a)//2, text=cisla[i][j], font='Arial 15', tags='vsetko')
+class Puzzle:
+	def __init__(self, board, canvas):
+		self.board = board
+		self.width = len(board)
+		self.tahy = 0
+		self.canvas = canvas
+		self.kresli()
 
-def is_solved(board):
-	flat = [i for sub in board for i in sub]
-	for i in range(0, len(flat)-1):
-		if str(flat[i]) != str(i+1):
-			return False
-	return True
+	def kresli(self):
+		self.canvas.delete('vsetko')
+		self.canvas.create_text(a+13, pad//2, text="Počet ťahov: " + str(self.tahy), font='Arial 15', tags='vsetko')
+		for i in range(self.width):
+			for j in range(self.width):
+				if self.board[i][j] in zlte:
+					self.canvas.create_rectangle(pad+a*j, pad+i*a+a, pad+a*j+a, pad+i*a, fill='orange', tags='vsetko')
+				else:
+					self.canvas.create_rectangle(pad+a*j, pad+i*a+a, pad+a*j+a, pad+i*a, fill='grey', tags='vsetko')
+
+				if self.board[i][j] == 0:
+					self.canvas.create_text((pad+a*j+pad+a*j+a)//2, (pad+i*a+a+pad+i*a)//2, text='', font='Arial 15', tags='vsetko')
+				else:
+					self.canvas.create_text((pad+a*j+pad+a*j+a)//2, (pad+i*a+a+pad+i*a)//2, text=self.board[i][j], font='Arial 15', tags='vsetko')
+
+		self.current = self.get_current()
+
+	def dole(self, e='<KeyRelease-Down>'):
+		if self.current[0] < len(cisla) - 1:
+			self.board[self.current[0]][self.current[1]], self.board[self.current[0]+1][self.current[1]] = self.board[self.current[0]+1][self.current[1]], self.board[self.current[0]][self.current[1]]
+			self.tahy += 1
+			self.kresli()
+
+	def hore(self, e='<KeyRelease-Up>'):
+		if self.current[0] > 0:
+			self.board[self.current[0]][self.current[1]], self.board[self.current[0]-1][self.current[1]] = self.board[self.current[0]-1][self.current[1]], self.board[self.current[0]][self.current[1]]
+			self.tahy += 1
+			self.kresli()
+
+	def doprava(self, e='<KeyRelease-Right>'):
+		if self.current[1] < len(cisla[0]) - 1:
+			self.board[self.current[0]][self.current[1]], self.board[self.current[0]][self.current[1]+1] = self.board[self.current[0]][self.current[1]+1], self.board[self.current[0]][self.current[1]]
+			self.tahy += 1
+			self.kresli()
+
+	def dolava(self, e='<KeyRelease-Left>'):
+		if self.current[1] > 0:
+			self.board[self.current[0]][self.current[1]], self.board[self.current[0]][self.current[1]-1] = self.board[self.current[0]][self.current[1]-1], self.board[self.current[0]][self.current[1]]
+			self.tahy += 1
+			self.kresli()
+
+	def is_solved(self):
+		flat = [i for sub in self.board for i in sub]
+		for i in range(0, len(flat)-1):
+			if str(flat[i]) != str(i+1):
+				return False
+		return True
+
+	def get_current(self):
+		for i in range(self.width):
+			for j in range(self.width):
+				if self.board[i][j] == 0:
+					current = [i, j]
+					return current
+
 
 def get_solutions(current, board, path, depth):
 	if len(path) > depth:
@@ -57,7 +102,6 @@ def get_solutions(current, board, path, depth):
 			return False
 		if path[-1] == 'd' and path[-2] == 'h':
 			return False
-	#print(path)
 
 	if is_solved(board):
 		solutions.append(path)
@@ -92,63 +136,15 @@ def get_solutions(current, board, path, depth):
 		board[current[0]][current[1]], board[current[0]][current[1]+1] = board[current[0]][current[1]+1], board[current[0]][current[1]]
 
 
-# print(solutions)
-# print(len(solutions))
-# print(time.time() - start)
 
 
-def dole(e='<KeyRelease-Down>'):
-	global current, tahy
-	if current[0] < len(cisla) - 1:
-		cisla[current[0]][current[1]], cisla[current[0]+1][current[1]] = cisla[current[0]+1][current[1]], cisla[current[0]][current[1]]
-		current = [current[0]+1, current[1]]
-		tahy += 1
-		kresli()
+doska = Puzzle([[7, 1, 0, 4],
+		 [13, 9, 3, 2],
+		 [14, 11, 12, 6],
+		 [10, 15, 8, 5]], canvas)
 
-def hore(e='<KeyRelease-Up>'):
-	global current, tahy
-	if current[0] > 0:
-		cisla[current[0]][current[1]], cisla[current[0]-1][current[1]] = cisla[current[0]-1][current[1]], cisla[current[0]][current[1]]
-		current = [current[0]-1, current[1]]
-		tahy += 1
-		kresli()
-
-def doprava(e='<KeyRelease-Right>'):
-	global current, tahy
-	if current[1] < len(cisla[0]) - 1:
-		cisla[current[0]][current[1]], cisla[current[0]][current[1]+1] = cisla[current[0]][current[1]+1], cisla[current[0]][current[1]]
-		current = [current[0], current[1]+1]
-		tahy += 1
-		kresli()
-
-def dolava(e='<KeyRelease-Left>'):
-	global current, tahy
-	if current[1] > 0:
-		cisla[current[0]][current[1]], cisla[current[0]][current[1]-1] = cisla[current[0]][current[1]-1], cisla[current[0]][current[1]]
-		current = [current[0], current[1]-1]
-		tahy += 1
-		kresli()
-
-# pos = [dole, hore, doprava, dolava]
-# for i in range(15):
-# 	random.choice(pos)()
-
-kresli()
-
-for i in range(len(cisla)):
-	for j in range(len(cisla[0])):
-		if cisla[i][j] == '':
-			current = [i, j]
-
-
-for depth in range(1, 25):	
- 	res = get_solutions(current, cisla, [], depth)
- 	if res is not None:
- 		print(res)
- 		break
-
-canvas.bind_all('<KeyRelease-Down>', dole)
-canvas.bind_all('<KeyRelease-Up>', hore)
-canvas.bind_all('<KeyRelease-Right>', doprava)
-canvas.bind_all('<KeyRelease-Left>', dolava)
-canvas.mainloop()
+canvas.bind_all('<KeyRelease-Down>', doska.dole)
+canvas.bind_all('<KeyRelease-Up>', doska.hore)
+canvas.bind_all('<KeyRelease-Right>', doska.doprava)
+canvas.bind_all('<KeyRelease-Left>', doska.dolava)
+doska.canvas.mainloop()
