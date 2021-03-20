@@ -7,18 +7,18 @@ a = 100
 pad = 50
 canvas = tkinter.Canvas(width=width, height=height)
 canvas.pack()
-prd = [[7, 1, '', 4],
+cisla = [[7, 1, '', 4],
 		 [13, 9, 3, 2],
 		 [14, 11, 12, 6],
 		 [10, 15, 8, 5]]
 zlte = [1, 3, 6, 8, 9, 11, 14, '']
 
-jeff = [[1,2,3,''],
-	     [5,6,7,4],
-	     [8,9,10,11],
-	     [12,13,14,15]]
+prd = [[1,2,3,4],
+	     [5,6,7,8],
+	     [9,10,11,12],
+	     [13,14,15,'']]
 
-cisla = [[1,2,3],
+jeff = [[1,2,3],
 		[4,5,6],
 		[7,8,'']]
 
@@ -92,8 +92,7 @@ def get_solutions(current, board, path, depth):
 		board[current[0]][current[1]], board[current[0]][current[1]+1] = board[current[0]][current[1]+1], board[current[0]][current[1]]
 
 	
-# for depth in range(1, 30):	
-# 	print(get_solutions([0, 2], cisla, [], depth))
+
 
 
 # print(solutions)
@@ -133,10 +132,25 @@ def dolava(e='<KeyRelease-Left>'):
 		tahy += 1
 		kresli()
 
-pos = [dole, hore, doprava, dolava]
-for i in range(10):
-	random.choice(pos)()
+# pos = [dole, hore, doprava, dolava]
+# for i in range(15):
+# 	random.choice(pos)()
+
+
 kresli()
+
+for i in range(len(cisla)):
+	for j in range(len(cisla[0])):
+		if cisla[i][j] == '':
+			current = [i, j]
+
+
+for depth in range(1, 25):	
+ 	res = get_solutions(current, cisla, [], depth)
+ 	if res is not None:
+ 		print(res)
+ 		break
+
 canvas.bind_all('<KeyRelease-Down>', dole)
 canvas.bind_all('<KeyRelease-Up>', hore)
 canvas.bind_all('<KeyRelease-Right>', doprava)
