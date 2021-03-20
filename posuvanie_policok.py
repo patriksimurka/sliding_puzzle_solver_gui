@@ -5,13 +5,13 @@ a = 100
 pad = 50
 canvas = tkinter.Canvas(width=width, height=height)
 canvas.pack()
-prd = [[7, 1, '', 4],
+cisla = [[7, 1, '', 4],
 		 [13, 9, 3, 2],
 		 [14, 11, 12, 6],
 		 [10, 15, 8, 5]]
-zlte = ['1', '3', '6', '8', '9', '11', '14', '']
+zlte = [1, 3, 6, 8, 9, 11, 14, '']
 
-cisla = [[1,2,3,''],
+prd = [[1,2,3,''],
 	     [5,6,7,4],
 	     [8,9,10,11],
 	     [12,13,14,15]]
@@ -38,8 +38,18 @@ def is_solved(board):
 	return True
 
 def get_solutions(current, board, path):
-	print(path)
-	if len(path) > 8:
+	if len(path) > 1:
+		if path[-1] == 'r' and path[-2] == 'l':
+			return False
+		if path[-1] == 'l' and path[-2] == 'r':
+			return False
+		if path[-1] == 'h' and path[-2] == 'd':
+			return False
+		if path[-1] == 'd' and path[-2] == 'h':
+			return False
+
+	#print(path)
+	if len(path) > 50:
 		return False
 
 	if is_solved(board):
@@ -50,28 +60,28 @@ def get_solutions(current, board, path):
 		board[current[0]][current[1]], board[current[0]+1][current[1]] = board[current[0]+1][current[1]], board[current[0]][current[1]]
 		solved = get_solutions([current[0]+1, current[1]], board, path + ['d'])
 		if solved:
-			print(path)
+			print(path + ['d'])
 		board[current[0]][current[1]], board[current[0]+1][current[1]] = board[current[0]+1][current[1]], board[current[0]][current[1]]
 
 	if current[1] > 0:
 		board[current[0]][current[1]], board[current[0]][current[1]-1] = board[current[0]][current[1]-1], board[current[0]][current[1]]
 		solved = get_solutions([current[0], current[1]-1], board, path + ['l'])
 		if solved:
-			print(path)
+			print(path + ['l'])
 		board[current[0]][current[1]], board[current[0]][current[1]-1] = board[current[0]][current[1]-1], board[current[0]][current[1]]
 
 	if current[0] > 0:
 		board[current[0]][current[1]], board[current[0]-1][current[1]] = board[current[0]-1][current[1]], board[current[0]][current[1]]
 		solved = get_solutions([current[0]-1, current[1]], board, path + ['h'])
 		if solved:
-			print(path)
+			print(path + ['h'])
 		board[current[0]][current[1]], board[current[0]-1][current[1]] = board[current[0]-1][current[1]], board[current[0]][current[1]]
 
 	if current[1] < len(cisla[0]) - 1:
 		board[current[0]][current[1]], board[current[0]][current[1]+1] = board[current[0]][current[1]+1], board[current[0]][current[1]]
 		solved = get_solutions([current[0], current[1]+1], board, path + ['r'])
 		if solved:
-			print(path)
+			print(path + ['r'])
 		board[current[0]][current[1]], board[current[0]][current[1]+1] = board[current[0]][current[1]+1], board[current[0]][current[1]]
 
 	
