@@ -52,6 +52,24 @@ class Puzzle:
 
 		self.current = self.get_current()
 
+	def get_solution(self, e='<KeyRelease-space>'):
+		puzzle = Puzzle(self.board, self.canvas)
+		ratios = [1, 2, 6, 7, 8, 9]
+		for ratio in ratios:
+			s = Solver(puzzle, ratio, 10)
+			p = s.solve()
+			if p is not None:
+				break
+			print(ratio)
+
+		result = []
+		for node in p:
+			if node.action is not None:
+				result.append(node.action)
+
+		print(result)
+		return result
+
 	def down(self, e='<KeyRelease-Down>'):
 		if self.current[0] < self.width - 1:
 			self.board[self.current[0]][self.current[1]], self.board[self.current[0]+1][self.current[1]] = self.board[self.current[0]+1][self.current[1]], self.board[self.current[0]][self.current[1]]
@@ -195,15 +213,19 @@ class Node:
 
 
 class Solver:
-	def __init__(self, start, ratio=1):
+	def __init__(self, start, ratio=1, timeout=float('inf')):
 		self.start = start
 		self.ratio = ratio
+		self.timeout = timeout
 
 	def solve(self):
+		start = time.time()
 		queue = collections.deque([Node(self.start)])
 		seen = set()
 		seen.add(queue[0].state)
 		while queue:
+			if time.time() - start > self.timeout:
+				break
 			queue = collections.deque(sorted(list(queue), key=lambda node: node.f))
 			node = queue.popleft()
 			if node.solved:
@@ -217,36 +239,40 @@ class Solver:
 					seen.add(child.state)
 
 
-board = [[7, 1, 0, 4],
-		 [13, 9, 3, 2],
-		 [14, 11, 12, 6],
-		 [10, 15, 8, 5]]
+#board = [[7, 1, 0, 4], [13, 9, 3, 2], [14, 11, 12, 6], [10, 15, 8, 5]] #jano
 
-# board = [[1,2,3,4],
-# 		 [5,6,7,8],
-# 		 [9,10,11,12],
-# 		 [13,14,15,0]]
+# board = [[1,2,3,4], [5,6,7,8], [9,10,11,12], [13,14,15,0]] #spravna
 
-#board = [[5,2,4,8],[10,0,3,14],[13,6,11,12],[1,15,9,7]]
-#board = [[1,2,3],[4,5,0],[6,7,8]]
+#board = [[5,1,7,3],[9,2,11,4],[13,6,15,8],[0,10,14,12]] #test case 1
+
+#board = [[2,5,13,12],[1,0,3,15],[9,7,14,6],[10,11,8,4]] #test case 2
+
+#board = [[5,2,4,8],[10,0,3,14],[13,6,11,12],[1,15,9,7]] #test case 3
+
+#board = [[11,4,12,2],[5,10,3,15],[14,1,6,7],[0,9,8,13]] #test case 4
+
+#board = [[5,8,7,11],[1,6,12,2],[9,0,13,10],[14,3,4,15]] #test case 5
+
+board = [[1,2,3],[4,5,0],[6,7,8]] #3x3
 
 puzzle = Puzzle(board, canvas)
 #puzzle = puzzle.shuffle()
 puzzle.kresli()
-s = Solver(puzzle, 6.5)
-start = time.time()
-p = s.solve()
-print(time.time()-start)
-count = 0
-for node in p:
-	count += 1
-	print(node.action)
 
-print()
-print(count-1)
+# for ratio in ratios:
+# 	s = Solver(puzzle, ratio, 10)
+# 	p = s.solve()
+# 	if p is not None:
+# 		break
+# 	print(ratio)
+# 	s = Solver(puzzle, ratio, 10)
+
+# for node in p:
+# 	print(node.action)
 
 canvas.bind_all('<KeyRelease-Down>', puzzle.down)
 canvas.bind_all('<KeyRelease-Up>', puzzle.up)
 canvas.bind_all('<KeyRelease-Right>', puzzle.right)
 canvas.bind_all('<KeyRelease-Left>', puzzle.left)
+canvas.bind_all('<KeyRelease-space>', puzzle.get_solution)
 puzzle.canvas.mainloop()
