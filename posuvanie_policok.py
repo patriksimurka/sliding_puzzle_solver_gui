@@ -53,14 +53,19 @@ class Puzzle:
 		self.current = self.get_current()
 
 	def get_solution(self, e='<KeyRelease-space>'):
+		canvas.create_text(width//2, height-pad, text='Hľadá sa riešenie, môže to trvať až minútu.', font='Arial 15', tags='hladam')
 		puzzle = Puzzle(self.board, self.canvas)
 		ratios = [1, 2, 6, 7, 8, 9]
 		for ratio in ratios:
 			s = Solver(puzzle, ratio, 10)
 			p = s.solve()
+			presnost = ratio
 			if p is not None:
 				break
 			print(ratio)
+		else:
+			self.canvas.delete('hladam')
+			canvas.create_text(width//2, height-pad, text='Riešenie nenájdené', font='Arial 15', tags='hladam')
 
 		result = []
 		for node in p:
@@ -68,9 +73,20 @@ class Puzzle:
 				result.append(node.action)
 
 		print(result)
-		self.solve_graphically(result)
+		self.solve_graphically(result, presnost)
 
-	def solve_graphically(self, moves):
+	def solve_graphically(self, moves, presnost):
+		self.tahy = 0
+		steps = len(moves)
+		self.canvas.delete('hladam')
+		if presnost == 1:
+			canvas.create_text(width//2, height-pad, text='Nájdené optimálne riešenie.', font='Arial 15', tags='hladam')
+		else:
+			if steps <= self.width**2:
+				canvas.create_text(width//2, height-pad, text='Nájdené riešenie nemusí byť optimálne.', font='Arial 15', tags='hladam')
+			else:
+				canvas.create_text(width//2, height-pad, text='Nájdené neoptimálne riešenie.', font='Arial 15', tags='hladam')
+
 		for move in moves:
 			if move == 'D':
 				self.down()
@@ -83,6 +99,7 @@ class Puzzle:
 			self.canvas.update()
 			time.sleep(0.5)
 
+		
 	def down(self, e='<KeyRelease-Down>'):
 		if self.current[0] < self.width - 1:
 			self.board[self.current[0]][self.current[1]], self.board[self.current[0]+1][self.current[1]] = self.board[self.current[0]+1][self.current[1]], self.board[self.current[0]][self.current[1]]
