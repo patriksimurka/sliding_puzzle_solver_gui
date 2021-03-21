@@ -272,17 +272,6 @@ puzzle = Puzzle(board, canvas)
 #puzzle = puzzle.shuffle()
 puzzle.kresli()
 
-# for ratio in ratios:
-# 	s = Solver(puzzle, ratio, 10)
-# 	p = s.solve()
-# 	if p is not None:
-# 		break
-# 	print(ratio)
-# 	s = Solver(puzzle, ratio, 10)
-
-# for node in p:
-# 	print(node.action)
-
 canvas.bind_all('<KeyRelease-Down>', puzzle.down)
 canvas.bind_all('<KeyRelease-Up>', puzzle.up)
 canvas.bind_all('<KeyRelease-Right>', puzzle.right)
