@@ -68,7 +68,20 @@ class Puzzle:
 				result.append(node.action)
 
 		print(result)
-		return result
+		self.solve_graphically(result)
+
+	def solve_graphically(self, moves):
+		for move in moves:
+			if move == 'D':
+				self.down()
+			elif move == 'U':
+				self.up()
+			elif move == 'L':
+				self.left()
+			elif move == 'R':
+				self.right()
+			self.canvas.update()
+			time.sleep(0.5)
 
 	def down(self, e='<KeyRelease-Down>'):
 		if self.current[0] < self.width - 1:
