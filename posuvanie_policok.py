@@ -1,7 +1,9 @@
 import tkinter
 import time
 import random
-start = time.time()
+import collections
+
+
 width = height = 500
 a = 100
 pad = 50
@@ -31,7 +33,7 @@ class Puzzle:
 		self.width = len(board)
 		self.tahy = 0
 		self.canvas = canvas
-		self.kresli()
+		self.current = self.get_current()
 
 	def kresli(self):
 		self.canvas.delete('vsetko')
@@ -51,7 +53,7 @@ class Puzzle:
 		self.current = self.get_current()
 
 	def down(self, e='<KeyRelease-Down>'):
-		if self.current[0] < len(cisla) - 1:
+		if self.current[0] < self.width - 1:
 			self.board[self.current[0]][self.current[1]], self.board[self.current[0]+1][self.current[1]] = self.board[self.current[0]+1][self.current[1]], self.board[self.current[0]][self.current[1]]
 			self.tahy += 1
 			self.kresli()
@@ -63,7 +65,7 @@ class Puzzle:
 			self.kresli()
 
 	def right(self, e='<KeyRelease-Right>'):
-		if self.current[1] < len(cisla[0]) - 1:
+		if self.current[1] < self.width - 1:
 			self.board[self.current[0]][self.current[1]], self.board[self.current[0]][self.current[1]+1] = self.board[self.current[0]][self.current[1]+1], self.board[self.current[0]][self.current[1]]
 			self.tahy += 1
 			self.kresli()
@@ -74,7 +76,8 @@ class Puzzle:
 			self.tahy += 1
 			self.kresli()
 
-	def is_solved(self):
+	@property
+	def solved(self):
 		flat = [i for sub in self.board for i in sub]
 		for i in range(0, len(flat)-1):
 			if str(flat[i]) != str(i+1):
@@ -88,6 +91,7 @@ class Puzzle:
 					current = [i, j]
 					return current
 
+	@property
 	def actions(self):
 		def create_move(at, to):
 			return lambda: self.move(at, to)
@@ -106,17 +110,143 @@ class Puzzle:
 						moves.append(move)
 		return moves
 
-				   
+	@property
+	def manhattan(self):
+		distance = 0
+		for i in range(self.width):
+			for j in range(self.width):
+				if self.board[i][j] != 0:
+					x, y = divmod(self.board[i][j]-1, self.width)
+					distance += abs(x - i) + abs(y - j)
+		return distance
 
-doska = Puzzle([[7, 1, 0, 4],
+	def shuffle(self):
+		puzzle = self
+		for _ in range(70):
+			puzzle = random.choice(puzzle.actions)[0]()
+		return puzzle
+
+	def copy(self):
+		board = []
+		for row in self.board:
+			board.append([x for x in row])
+		return Puzzle(board, canvas)
+
+	def move(self, at, to):
+		copy = self.copy()
+		i, j = at
+		r, c = to
+		copy.board[i][j], copy.board[r][c] = copy.board[r][c], copy.board[i][j]
+		return copy
+
+	def __str__(self):
+		return ''.join(map(str, self))
+
+	def __iter__(self):
+		for row in self.board:
+			yield from row
+
+
+class Node:
+	def __init__(self, puzzle, parent=None, action=None, ratio=1):
+		self.puzzle = puzzle
+		self.parent = parent
+		self.action = action
+		self.ratio = ratio
+		if (self.parent != None):
+			self.g = parent.g + 1
+		else:
+			self.g = 0
+
+	@property
+	def score(self):
+		return (self.g + self.h)
+
+	@property
+	def state(self):
+		return str(self)
+
+	@property
+	def path(self):
+		node, p = self, []
+		while node:
+			p.append(node)
+			node = node.parent
+		yield from reversed(p)
+
+	@property
+	def solved(self):
+		return self.puzzle.solved
+
+	@property
+	def actions(self):
+		return self.puzzle.actions
+
+	@property
+	def h(self):
+		return self.puzzle.manhattan * self.ratio
+
+	@property
+	def f(self):
+		return self.h + self.g
+
+	def __str__(self):
+		return str(self.puzzle)
+
+
+class Solver:
+	def __init__(self, start, ratio=1):
+		self.start = start
+		self.ratio = ratio
+
+	def solve(self):
+		queue = collections.deque([Node(self.start)])
+		seen = set()
+		seen.add(queue[0].state)
+		while queue:
+			queue = collections.deque(sorted(list(queue), key=lambda node: node.f))
+			node = queue.popleft()
+			if node.solved:
+				return node.path
+
+			for move, action in node.actions:
+				child = Node(move(), node, action, self.ratio)
+
+				if child.state not in seen:
+					queue.appendleft(child)
+					seen.add(child.state)
+
+
+board = [[7, 1, 0, 4],
 		 [13, 9, 3, 2],
 		 [14, 11, 12, 6],
-		 [10, 15, 8, 5]], canvas)
+		 [10, 15, 8, 5]]
 
-print(doska.actions())
+# board = [[1,2,3,4],
+# 		 [5,6,7,8],
+# 		 [9,10,11,12],
+# 		 [13,14,15,0]]
 
-canvas.bind_all('<KeyRelease-Down>', doska.down)
-canvas.bind_all('<KeyRelease-Up>', doska.up)
-canvas.bind_all('<KeyRelease-Right>', doska.right)
-canvas.bind_all('<KeyRelease-Left>', doska.left)
-doska.canvas.mainloop()
+#board = [[5,2,4,8],[10,0,3,14],[13,6,11,12],[1,15,9,7]]
+#board = [[1,2,3],[4,5,0],[6,7,8]]
+
+puzzle = Puzzle(board, canvas)
+#puzzle = puzzle.shuffle()
+puzzle.kresli()
+s = Solver(puzzle, 6.5)
+start = time.time()
+p = s.solve()
+print(time.time()-start)
+count = 0
+for node in p:
+	count += 1
+	print(node.action)
+
+print()
+print(count-1)
+
+canvas.bind_all('<KeyRelease-Down>', puzzle.down)
+canvas.bind_all('<KeyRelease-Up>', puzzle.up)
+canvas.bind_all('<KeyRelease-Right>', puzzle.right)
+canvas.bind_all('<KeyRelease-Left>', puzzle.left)
+puzzle.canvas.mainloop()
