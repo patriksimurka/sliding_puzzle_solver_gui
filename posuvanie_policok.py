@@ -9,23 +9,8 @@ a = 100
 pad = 50
 canvas = tkinter.Canvas(width=width, height=height)
 canvas.pack()
-
-cisla = [[7, 1, 0, 4],
-		 [13, 9, 3, 2],
-		 [14, 11, 12, 6],
-		 [10, 15, 8, 5]]
 zlte = [1, 3, 6, 8, 9, 11, 14, 0]
 
-prd = [[1,2,3,4],
-		 [5,6,7,8],
-		 [9,10,11,12],
-		 [13,14,15,0]]
-
-jeff = [[1,2,3],
-		[4,5,6],
-		[7,8,0]]
-
-solutions = []
 
 class Puzzle:
 	def __init__(self, board, canvas):
@@ -34,10 +19,13 @@ class Puzzle:
 		self.tahy = 0
 		self.canvas = canvas
 		self.current = self.get_current()
+		self.search = False
 
 	def kresli(self):
 		self.canvas.delete('vsetko')
 		self.canvas.create_text(a+13, pad//2, text="Počet ťahov: " + str(self.tahy), font='Arial 15', tags='vsetko')
+		if not self.search:
+			self.canvas.create_text(width//2, height-pad//2, text='Stlačením medzerníka program nájde riešenie.', font='Arial 15', tags='info')
 		for i in range(self.width):
 			for j in range(self.width):
 				if self.board[i][j] in zlte:
@@ -53,11 +41,15 @@ class Puzzle:
 		self.current = self.get_current()
 
 	def get_solution(self, e='<KeyRelease-space>'):
-		canvas.create_text(width//2, height-pad, text='Hľadá sa riešenie, môže to trvať až minútu.', font='Arial 15', tags='hladam')
+		self.search = True
+		self.canvas.delete('info')
+		self.canvas.delete('vysledok')
+		self.canvas.create_text(width//2, height-pad//2, text='Hľadá sa riešenie, môže to trvať až minútu.', font='Arial 15', tags='hladam')
+		self.canvas.update()
 		puzzle = Puzzle(self.board, self.canvas)
-		ratios = [1, 2, 6, 7, 8, 9]
+		ratios = [1, 7, 11, 13]
 		for ratio in ratios:
-			s = Solver(puzzle, ratio, 10)
+			s = Solver(puzzle, ratio, 15)
 			p = s.solve()
 			presnost = ratio
 			if p is not None:
@@ -65,7 +57,8 @@ class Puzzle:
 			print(ratio)
 		else:
 			self.canvas.delete('hladam')
-			canvas.create_text(width//2, height-pad, text='Riešenie nenájdené', font='Arial 15', tags='hladam')
+			self.canvas.create_text(width//2, height-pad//2, text='Riešenie nenájdené', font='Arial 15', tags='hladam')
+			return
 
 		result = []
 		for node in p:
@@ -77,15 +70,14 @@ class Puzzle:
 
 	def solve_graphically(self, moves, presnost):
 		self.tahy = 0
-		steps = len(moves)
 		self.canvas.delete('hladam')
 		if presnost == 1:
-			canvas.create_text(width//2, height-pad, text='Nájdené optimálne riešenie.', font='Arial 15', tags='hladam')
+			self.canvas.create_text(width//2, height-pad//2, text='Nájdené optimálne riešenie.', font='Arial 15', tags='vysledok')
 		else:
-			if steps <= self.width**2:
-				canvas.create_text(width//2, height-pad, text='Nájdené riešenie nemusí byť optimálne.', font='Arial 15', tags='hladam')
+			if len(moves) <= self.width**3:
+				self.canvas.create_text(width//2, height-pad//2, text='Nájdené riešenie nemusí byť optimálne.', font='Arial 15', tags='vysledok')
 			else:
-				canvas.create_text(width//2, height-pad, text='Nájdené neoptimálne riešenie.', font='Arial 15', tags='hladam')
+				self.canvas.create_text(width//2, height-pad//2, text='Nájdené neoptimálne riešenie.', font='Arial 15', tags='vysledok')
 
 		for move in moves:
 			if move == 'D':
@@ -178,7 +170,7 @@ class Puzzle:
 		board = []
 		for row in self.board:
 			board.append([x for x in row])
-		return Puzzle(board, canvas)
+		return Puzzle(board, self.canvas)
 
 	def move(self, at, to):
 		copy = self.copy()
@@ -269,9 +261,9 @@ class Solver:
 					seen.add(child.state)
 
 
-#board = [[7, 1, 0, 4], [13, 9, 3, 2], [14, 11, 12, 6], [10, 15, 8, 5]] #jano
+#board = [[7, 1, 0, 4], [13, 9, 3, 2], [14, 11, 12, 6], [10, 15, 8, 5]] #jano #13
 
-# board = [[1,2,3,4], [5,6,7,8], [9,10,11,12], [13,14,15,0]] #spravna
+board = [[1,2,3,4], [5,6,7,8], [9,10,11,12], [13,14,15,0]] #spravna
 
 #board = [[5,1,7,3],[9,2,11,4],[13,6,15,8],[0,10,14,12]] #test case 1
 
@@ -283,15 +275,15 @@ class Solver:
 
 #board = [[5,8,7,11],[1,6,12,2],[9,0,13,10],[14,3,4,15]] #test case 5
 
-board = [[1,2,3],[4,5,0],[6,7,8]] #3x3
+#board = [[1,2,3],[4,5,0],[6,7,8]] #3x3
 
 puzzle = Puzzle(board, canvas)
-#puzzle = puzzle.shuffle()
 puzzle.kresli()
+#puzzle = puzzle.shuffle()
 
-canvas.bind_all('<KeyRelease-Down>', puzzle.down)
-canvas.bind_all('<KeyRelease-Up>', puzzle.up)
-canvas.bind_all('<KeyRelease-Right>', puzzle.right)
-canvas.bind_all('<KeyRelease-Left>', puzzle.left)
-canvas.bind_all('<KeyRelease-space>', puzzle.get_solution)
+puzzle.canvas.bind_all('<KeyRelease-Down>', puzzle.down)
+puzzle.canvas.bind_all('<KeyRelease-Up>', puzzle.up)
+puzzle.canvas.bind_all('<KeyRelease-Right>', puzzle.right)
+puzzle.canvas.bind_all('<KeyRelease-Left>', puzzle.left)
+puzzle.canvas.bind_all('<KeyRelease-space>', puzzle.get_solution)
 puzzle.canvas.mainloop()
