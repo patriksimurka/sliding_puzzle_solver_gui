@@ -41,32 +41,39 @@ class Puzzle:
 		self.current = self.get_current()
 
 	def get_solution(self, e='<KeyRelease-space>'):
-		self.search = True
-		self.canvas.delete('info')
-		self.canvas.delete('vysledok')
-		self.canvas.create_text(width//2, height-pad//2, text='Hľadá sa riešenie, môže to trvať až minútu.', font='Arial 15', tags='hladam')
-		self.canvas.update()
-		puzzle = Puzzle(self.board, self.canvas)
-		ratios = [1, 7, 11, 13]
-		for ratio in ratios:
-			s = Solver(puzzle, ratio, 15)
-			p = s.solve()
-			presnost = ratio
-			if p is not None:
-				break
-			print(ratio)
-		else:
-			self.canvas.delete('hladam')
-			self.canvas.create_text(width//2, height-pad//2, text='Riešenie nenájdené', font='Arial 15', tags='hladam')
-			return
+			self.search = True
+			self.canvas.delete('info')
+			self.canvas.delete('vysledok')
+			self.canvas.create_text(width//2, height-pad//2, text='Hľadá sa riešenie, môže to trvať až minútu.', font='Arial 15', tags='hladam')
+			self.canvas.update()
+			puzzle = Puzzle(self.board, self.canvas)
+			ratios = [1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20]
+			for ratio in ratios:
+				s = Solver(puzzle, ratio, 10)
+				start = time.time()
+				p = s.solve()
+				presnost = ratio
+				if p is not None:
+					f = open('log.txt', 'a')
+					f.write(str(ratio)+' '+str(time.time()-start)+'\n')
+					f.close()
+					break
+				f = open('log.txt', 'a')
+				f.write(str(ratio)+'\n')
+				f.close()
+				print(ratio)
+			else:
+				self.canvas.delete('hladam')
+				self.canvas.create_text(width//2, height-pad//2, text='Riešenie nenájdené', font='Arial 15', tags='hladam')
+				return
 
-		result = []
-		for node in p:
-			if node.action is not None:
-				result.append(node.action)
+			result = []
+			for node in p:
+				if node.action is not None:
+					result.append(node.action)
 
-		print(result)
-		self.solve_graphically(result, presnost)
+			print(result)
+			#self.solve_graphically(result, presnost)
 
 	def solve_graphically(self, moves, presnost):
 		self.tahy = 0
@@ -162,7 +169,7 @@ class Puzzle:
 
 	def shuffle(self):
 		puzzle = self
-		for _ in range(70):
+		for _ in range(1000):
 			puzzle = random.choice(puzzle.actions)[0]()
 		return puzzle
 
@@ -276,10 +283,13 @@ board = [[1,2,3,4], [5,6,7,8], [9,10,11,12], [13,14,15,0]] #spravna
 #board = [[5,8,7,11],[1,6,12,2],[9,0,13,10],[14,3,4,15]] #test case 5
 
 #board = [[1,2,3],[4,5,0],[6,7,8]] #3x3
-
 puzzle = Puzzle(board, canvas)
+for _ in range(40):
+	puzzle = puzzle.shuffle()
+	puzzle.get_solution()
+
+
 puzzle.kresli()
-#puzzle = puzzle.shuffle()
 
 puzzle.canvas.bind_all('<KeyRelease-Down>', puzzle.down)
 puzzle.canvas.bind_all('<KeyRelease-Up>', puzzle.up)
