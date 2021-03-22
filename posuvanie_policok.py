@@ -49,9 +49,9 @@ class Puzzle:
 			puzzle = Puzzle(self.board, self.canvas)
 			ratios = [1,2,3,4,5,6,7,9,11,13]
 			for ratio in ratios:
-				s = Solver(puzzle, ratio, 20)
+				s = Solver(puzzle, 20)
 				start = time.time()
-				p = s.solve()
+				p = s.solve(ratio)
 				presnost = ratio
 				if p is not None:
 					print(str(ratio)+' '+str(time.time()-start)+'\n')
@@ -246,12 +246,12 @@ class Node:
 
 
 class Solver:
-	def __init__(self, start, ratio=1, timeout=float('inf')):
+	def __init__(self, start, timeout=float('inf')):
 		self.start = start
-		self.ratio = ratio
 		self.timeout = timeout
 
-	def solve(self):
+	def solve(self, ratio=1):
+		self.ratio = ratio
 		start = time.time()
 		queue = collections.deque([Node(self.start)])
 		seen = set()
