@@ -47,24 +47,28 @@ class Puzzle:
 			self.canvas.create_text(width//2, height-pad//2, text='Hľadá sa riešenie, môže to trvať až minútu.', font='Arial 15', tags='hladam')
 			self.canvas.update()
 			puzzle = Puzzle(self.board, self.canvas)
-			ratios = [1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20]
+			ratios = [1,2,3,4,5,6,7,9,11,13]
 			for ratio in ratios:
-				s = Solver(puzzle, ratio, 10)
+				s = Solver(puzzle, ratio, 20)
 				start = time.time()
 				p = s.solve()
 				presnost = ratio
 				if p is not None:
-					f = open('log.txt', 'a')
-					f.write(str(ratio)+' '+str(time.time()-start)+'\n')
-					f.close()
+					print(str(ratio)+' '+str(time.time()-start)+'\n')
+					# f = open('log3.txt', 'a')
+					# f.write(str(ratio)+' '+str(time.time()-start)+'\n')
+					# f.close()
 					break
-				f = open('log.txt', 'a')
-				f.write(str(ratio)+'\n')
-				f.close()
+				# f = open('log3.txt', 'a')
+				# f.write(str(ratio)+'\n')
+				# f.close()
 				print(ratio)
 			else:
 				self.canvas.delete('hladam')
 				self.canvas.create_text(width//2, height-pad//2, text='Riešenie nenájdené', font='Arial 15', tags='hladam')
+				f = open('log3.txt', 'a')
+				f.write('x \n')
+				f.close()
 				return
 
 			result = []
@@ -73,7 +77,7 @@ class Puzzle:
 					result.append(node.action)
 
 			print(result)
-			#self.solve_graphically(result, presnost)
+			self.solve_graphically(result, presnost)
 
 	def solve_graphically(self, moves, presnost):
 		self.tahy = 0
@@ -270,7 +274,7 @@ class Solver:
 
 #board = [[7, 1, 0, 4], [13, 9, 3, 2], [14, 11, 12, 6], [10, 15, 8, 5]] #jano #13
 
-board = [[1,2,3,4], [5,6,7,8], [9,10,11,12], [13,14,15,0]] #spravna
+#board = [[1,2,3,4], [5,6,7,8], [9,10,11,12], [13,14,15,0]] #spravna
 
 #board = [[5,1,7,3],[9,2,11,4],[13,6,15,8],[0,10,14,12]] #test case 1
 
@@ -280,16 +284,19 @@ board = [[1,2,3,4], [5,6,7,8], [9,10,11,12], [13,14,15,0]] #spravna
 
 #board = [[11,4,12,2],[5,10,3,15],[14,1,6,7],[0,9,8,13]] #test case 4
 
-#board = [[5,8,7,11],[1,6,12,2],[9,0,13,10],[14,3,4,15]] #test case 5
+board = [[5,8,7,11],[1,6,12,2],[9,0,13,10],[14,3,4,15]] #test case 5
 
 #board = [[1,2,3],[4,5,0],[6,7,8]] #3x3
+
+# for i in range(100):
+# 	print(f'{int(((i+1)/100)*100)}%')
+# 	puzzle = Puzzle(board, canvas)
+# 	puzzle = puzzle.shuffle()
+# 	puzzle.get_solution()
+
 puzzle = Puzzle(board, canvas)
-for _ in range(40):
-	puzzle = puzzle.shuffle()
-	puzzle.get_solution()
-
-
 puzzle.kresli()
+
 
 puzzle.canvas.bind_all('<KeyRelease-Down>', puzzle.down)
 puzzle.canvas.bind_all('<KeyRelease-Up>', puzzle.up)
