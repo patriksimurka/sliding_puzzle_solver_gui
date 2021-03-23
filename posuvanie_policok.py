@@ -2,7 +2,7 @@ import tkinter
 import time
 import random
 import collections
-
+import concurrent.futures
 
 width = height = 500
 a = 100
@@ -10,9 +10,10 @@ pad = 50
 canvas = tkinter.Canvas(width=width, height=height)
 canvas.pack()
 zlte = [1, 3, 6, 8, 9, 11, 14, 0]
-
+result = []
 
 class Puzzle:
+	result = []
 	def __init__(self, board, canvas):
 		self.board = board
 		self.width = len(board)
@@ -20,6 +21,7 @@ class Puzzle:
 		self.canvas = canvas
 		self.current = self.get_current()
 		self.search = False
+
 
 	def kresli(self):
 		self.canvas.delete('vsetko')
@@ -47,39 +49,25 @@ class Puzzle:
 			self.canvas.create_text(width//2, height-pad//2, text='Hľadá sa riešenie, môže to trvať až minútu.', font='Arial 15', tags='hladam')
 			self.canvas.update()
 			puzzle = Puzzle(self.board, self.canvas)
-			ratios = [1,2,3,4,5,6,7,9,11,13]
-			for ratio in ratios:
-				s = Solver(puzzle, 20)
-				start = time.time()
-				p = s.solve(ratio)
-				presnost = ratio
-				if p is not None:
-					print(str(ratio)+' '+str(time.time()-start)+'\n')
-					# f = open('log3.txt', 'a')
-					# f.write(str(ratio)+' '+str(time.time()-start)+'\n')
-					# f.close()
-					break
-				# f = open('log3.txt', 'a')
-				# f.write(str(ratio)+'\n')
-				# f.close()
-				print(ratio)
+
+			o = Solver(puzzle, 10)
+			opt = o.solve(1)
+
+			if opt is not None:
+				presnost = 1
+				self.solve_graphically(result, presnost)
 			else:
-				self.canvas.delete('hladam')
-				self.canvas.create_text(width//2, height-pad//2, text='Riešenie nenájdené', font='Arial 15', tags='hladam')
-				f = open('log3.txt', 'a')
-				f.write('x \n')
-				f.close()
-				return
+				ratios = [2,3,4,5,6,7,9,11,13]
+				s = Solver(puzzle, 110)
+				with concurrent.futures.ThreadPoolExecutor(max_workers=len(ratios)) as executor:
+					futures = [executor.submit(s.solve, ratio) for ratio in ratios]
+				if not result == 0:
+					self.canvas.delete('hladam')
+					self.canvas.create_text(width//2, height-pad//2, text='Riešenie nenájdené.', font='Arial 15', tags='vysledok')
+				else:
+					self.solve_graphically(result)
 
-			result = []
-			for node in p:
-				if node.action is not None:
-					result.append(node.action)
-
-			print(result)
-			self.solve_graphically(result, presnost)
-
-	def solve_graphically(self, moves, presnost):
+	def solve_graphically(self, moves, presnost=5):
 		self.tahy = 0
 		self.canvas.delete('hladam')
 		if presnost == 1:
@@ -249,19 +237,26 @@ class Solver:
 	def __init__(self, start, timeout=float('inf')):
 		self.start = start
 		self.timeout = timeout
+		self.solved = False
 
 	def solve(self, ratio=1):
+		global result
+		print(ratio)
 		self.ratio = ratio
 		start = time.time()
 		queue = collections.deque([Node(self.start)])
 		seen = set()
 		seen.add(queue[0].state)
-		while queue:
+		while queue and not self.solved:
 			if time.time() - start > self.timeout:
 				break
 			queue = collections.deque(sorted(list(queue), key=lambda node: node.f))
 			node = queue.popleft()
 			if node.solved:
+				print('ok', ratio)
+				result = [i.action for i in node.path if i.action is not None]
+				print(result)
+				self.solved = True
 				return node.path
 
 			for move, action in node.actions:
