@@ -22,7 +22,6 @@ class Puzzle:
 		self.current = self.get_current()
 		self.search = False
 
-
 	def kresli(self):
 		self.canvas.delete('vsetko')
 		self.canvas.create_text(a+13, pad//2, text="Počet ťahov: " + str(self.tahy), font='Arial 15', tags='vsetko')
@@ -43,6 +42,8 @@ class Puzzle:
 		self.current = self.get_current()
 
 	def get_solution(self, e='<KeyRelease-space>'):
+			global result
+			result = []
 			self.search = True
 			self.canvas.delete('info')
 			self.canvas.delete('vysledok')
@@ -55,17 +56,24 @@ class Puzzle:
 
 			if opt is not None:
 				presnost = 1
-				self.solve_graphically(result, presnost)
+				#self.solve_graphically(result, presnost)
+				with open('log11.txt', 'a') as f:
+					f.write('opt\n')
 			else:
-				ratios = [2,3,4,5,6,7,9,11,13]
-				s = Solver(puzzle, 110)
-				with concurrent.futures.ThreadPoolExecutor(max_workers=len(ratios)) as executor:
+				ratios = [2,3,4,5,6,7]
+				s = Solver(puzzle, 290)
+				start = time.time()
+				with concurrent.futures.ThreadPoolExecutor() as executor:
 					futures = [executor.submit(s.solve, ratio) for ratio in ratios]
-				if not result == 0:
-					self.canvas.delete('hladam')
-					self.canvas.create_text(width//2, height-pad//2, text='Riešenie nenájdené.', font='Arial 15', tags='vysledok')
+				if not result:
+					with open('log11.txt', 'a') as f:
+						f.write('x\n')
+					# self.canvas.delete('hladam')
+					# self.canvas.create_text(width//2, height-pad//2, text='Riešenie nenájdené.', font='Arial 15', tags='vysledok')
 				else:
-					self.solve_graphically(result)
+					with open('log11.txt', 'a') as f:
+						f.write(str(time.time()-start)+'\n')
+					#self.solve_graphically(result)
 
 	def solve_graphically(self, moves, presnost=5):
 		self.tahy = 0
@@ -159,9 +167,9 @@ class Puzzle:
 					distance += abs(x - i) + abs(y - j)
 		return distance
 
-	def shuffle(self):
+	def shuffle(self, num):
 		puzzle = self
-		for _ in range(1000):
+		for _ in range(num):
 			puzzle = random.choice(puzzle.actions)[0]()
 		return puzzle
 
@@ -192,14 +200,14 @@ class Node:
 		self.parent = parent
 		self.action = action
 		self.ratio = ratio
-		if (self.parent != None):
+		if self.parent != None:
 			self.g = parent.g + 1
 		else:
 			self.g = 0
 
 	@property
 	def score(self):
-		return (self.g + self.h)
+		return self.g + self.h
 
 	@property
 	def state(self):
@@ -269,7 +277,7 @@ class Solver:
 
 #board = [[7, 1, 0, 4], [13, 9, 3, 2], [14, 11, 12, 6], [10, 15, 8, 5]] #jano #13
 
-#board = [[1,2,3,4], [5,6,7,8], [9,10,11,12], [13,14,15,0]] #spravna
+board = [[1,2,3,4], [5,6,7,8], [9,10,11,12], [13,14,15,0]] #spravna
 
 #board = [[5,1,7,3],[9,2,11,4],[13,6,15,8],[0,10,14,12]] #test case 1
 
@@ -279,15 +287,15 @@ class Solver:
 
 #board = [[11,4,12,2],[5,10,3,15],[14,1,6,7],[0,9,8,13]] #test case 4
 
-board = [[5,8,7,11],[1,6,12,2],[9,0,13,10],[14,3,4,15]] #test case 5
+#board = [[5,8,7,11],[1,6,12,2],[9,0,13,10],[14,3,4,15]] #test case 5
 
 #board = [[1,2,3],[4,5,0],[6,7,8]] #3x3
 
-# for i in range(100):
-# 	print(f'{int(((i+1)/100)*100)}%')
-# 	puzzle = Puzzle(board, canvas)
-# 	puzzle = puzzle.shuffle()
-# 	puzzle.get_solution()
+for i in range(100):
+	print(f'{int(((i+1)/100)*100)}%')
+	puzzle = Puzzle(board, canvas)
+	puzzle = puzzle.shuffle(1000)
+	puzzle.get_solution()
 
 puzzle = Puzzle(board, canvas)
 puzzle.kresli()
