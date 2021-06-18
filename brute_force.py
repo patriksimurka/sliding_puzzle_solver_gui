@@ -1,3 +1,13 @@
+from functools import cache
+
+@cache
+def is_solved(board):
+    flat = [i for sub in board for i in sub]
+    for i in range(0, len(flat) - 1):
+        if str(flat[i]) != str(i + 1):
+            return False
+    return True
+
 def get_solutions(current, board, path, depth):
 	if len(path) > depth:
 		return False
@@ -16,7 +26,7 @@ def get_solutions(current, board, path, depth):
 		solutions.append(path)
 		return True
 
-	if current[0] < len(cisla) - 1:
+	if current[0] < len(board) - 1:
 		board[current[0]][current[1]], board[current[0]+1][current[1]] = board[current[0]+1][current[1]], board[current[0]][current[1]]
 		solved = get_solutions([current[0]+1, current[1]], board, path + ['d'], depth)
 		if solved:
@@ -37,9 +47,13 @@ def get_solutions(current, board, path, depth):
 			print(path + ['h'])
 		board[current[0]][current[1]], board[current[0]-1][current[1]] = board[current[0]-1][current[1]], board[current[0]][current[1]]
 
-	if current[1] < len(cisla[0]) - 1:
+	if current[1] < len(board[0]) - 1:
 		board[current[0]][current[1]], board[current[0]][current[1]+1] = board[current[0]][current[1]+1], board[current[0]][current[1]]
 		solved = get_solutions([current[0], current[1]+1], board, path + ['r'], depth)
 		if solved:
 			print(path + ['r'])
 		board[current[0]][current[1]], board[current[0]][current[1]+1] = board[current[0]][current[1]+1], board[current[0]][current[1]]
+
+brd = [[7, 1, 0, 4], [13, 9, 3, 2], [14, 11, 12, 6], [10, 15, 8, 5]]
+crnt = [0, 2]
+get_solutions(tuple(crnt), tuple(brd), tuple([]), 60)
